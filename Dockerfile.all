@@ -1,0 +1,38 @@
+FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+
+WORKDIR /app
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    TZ=UTC
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    wget \
+    redis-server \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Python 3.10 as default
+RUN pip3 install uv -i https://pypi.tuna.tsinghua.edu.cn/simple && \
+    uv venv --python=3.10 && uv pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/models /tmp/rmbg-uploads /tmp/rmbg-results
+
+# Download model if not exists
+RUN if [ ! -f /app/models/u2net.onnx ]; then \
+    wget -O /app/models/u2net.onnx https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx; \
+    fi
+
+# Set environment variable for GPU
+ENV DEVICE=cuda
+
+# Run Celery worker
+CMD ["/app/.venv/bin/python", "run_local.py",  "--concurrency=1"]

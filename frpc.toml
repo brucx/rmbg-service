@@ -1,0 +1,11 @@
+serverAddr = "{{ .Envs.FRP_SERVER_ADDR }}"
+serverPort = {{ .Envs.FRP_SERVER_PORT }}
+
+auth.method = "token"
+auth.token = "{{ .Envs.FRP_TOKEN }}"
+
+[[proxies]]
+name = "web-{{ .Envs.FRP_CLIENT_SUBDOMAIN }}"
+type = "http"
+localPort = {{ .Envs.FRP_CLIENT_PORT }}
+subdomain = "{{ .Envs.FRP_CLIENT_SUBDOMAIN }}"
