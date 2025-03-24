@@ -3,3 +3,4 @@ logs
 __pycache__
 .env
 models/*
+load_test_results_*.json
